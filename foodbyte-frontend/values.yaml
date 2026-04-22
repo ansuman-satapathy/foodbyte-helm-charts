@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/ansuman-satapathy/foodbyte-user-service
+  repository: ghcr.io/ansuman-satapathy/foodbyte-frontend
   pullPolicy: IfNotPresent
   tag: "latest"
 
@@ -18,7 +18,7 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 8001
+  port: 80
 
 ingress: { enabled: false }
 httpRoute: { enabled: false }
@@ -29,17 +29,6 @@ tolerations: []
 affinity: {}
 
 livenessProbe:
-  httpGet: { path: /health, port: http }
+  httpGet: { path: /, port: http }
 readinessProbe:
-  httpGet: { path: /health, port: http }
-
-devPostgres:
-  enabled: true
-  user: user_admin
-  password: user_pass
-  database: user_db
-
-appConfig:
-  jwtSecret: "your_jwt_secret"
-  jwtAlgorithm: "HS256"
-  jwtExpireMinutes: 60
+  httpGet: { path: /, port: http }

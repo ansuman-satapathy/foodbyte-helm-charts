@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "foodbyte-restaurant-service.fullname" . }}
+  name: {{ include "foodbyte-order-service.fullname" . }}
   labels:
-    {{- include "foodbyte-restaurant-service.labels" . | nindent 4 }}
+    {{- include "foodbyte-order-service.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "foodbyte-restaurant-service.selectorLabels" . | nindent 6 }}
+      {{- include "foodbyte-order-service.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,7 +18,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "foodbyte-restaurant-service.labels" . | nindent 8 }}
+        {{- include "foodbyte-order-service.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -27,7 +27,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "foodbyte-restaurant-service.serviceAccountName" . }}
+      serviceAccountName: {{ include "foodbyte-order-service.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -61,16 +61,16 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            - name: MONGODB_URL
-              value: "mongodb://{{ .Values.mongodb.auth.username }}:{{ .Values.mongodb.auth.password }}@{{ .Release.Name }}-mongodb:27017/{{ .Values.mongodb.auth.database }}?authSource={{ .Values.mongodb.auth.database }}"
-            - name: MONGODB_DB
-              value: {{ .Values.mongodb.auth.database | quote }}
+            - name: DATABASE_URL
+              value: "postgresql://{{ .Values.devPostgres.user }}:{{ .Values.devPostgres.password }}@{{ .Release.Name }}-db:5432/{{ .Values.devPostgres.database }}"
+            - name: RABBITMQ_URL
+              value: "amqp://{{ .Values.devRabbitMQ.user }}:{{ .Values.devRabbitMQ.password }}@{{ .Release.Name }}-rabbitmq:5672/"
+            - name: RESTAURANT_SERVICE_URL
+              value: {{ .Values.appConfig.restaurantServiceUrl | quote }}
             - name: JWT_SECRET
               value: {{ .Values.appConfig.jwtSecret | quote }}
             - name: JWT_ALGORITHM
               value: {{ .Values.appConfig.jwtAlgorithm | quote }}
-            - name: JWT_EXPIRE_MINUTES
-              value: {{ .Values.appConfig.jwtExpireMinutes | quote }}
       {{- with .Values.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}

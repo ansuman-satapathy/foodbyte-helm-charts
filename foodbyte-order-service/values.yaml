@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/ansuman-satapathy/foodbyte-user-service
+  repository: ghcr.io/ansuman-satapathy/foodbyte-order-service
   pullPolicy: IfNotPresent
   tag: "latest"
 
@@ -18,7 +18,7 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 8001
+  port: 8003
 
 ingress: { enabled: false }
 httpRoute: { enabled: false }
@@ -35,11 +35,17 @@ readinessProbe:
 
 devPostgres:
   enabled: true
-  user: user_admin
-  password: user_pass
-  database: user_db
+  user: order_user
+  password: order_password
+  database: order_db
+
+devRabbitMQ:
+  enabled: true
+  user: user
+  password: password
 
 appConfig:
   jwtSecret: "your_jwt_secret"
   jwtAlgorithm: "HS256"
   jwtExpireMinutes: 60
+  restaurantServiceUrl: "http://restaurant-service-foodbyte-restaurant-service:8002"

@@ -5,10 +5,6 @@ image:
   pullPolicy: IfNotPresent
   tag: "latest"
 
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
 serviceAccount:
   create: true
   automount: true
@@ -24,40 +20,25 @@ service:
   type: ClusterIP
   port: 8002
 
-ingress:
-  enabled: false
-httpRoute:
-  enabled: false
-
+ingress: { enabled: false }
+httpRoute: { enabled: false }
 resources: {}
-
-livenessProbe:
-  httpGet:
-    path: /health
-    port: http
-readinessProbe:
-  httpGet:
-    path: /health
-    port: http
-
-autoscaling:
-  enabled: false
-volumes: []
-volumeMounts: []
+autoscaling: { enabled: false }
 nodeSelector: {}
 tolerations: []
 affinity: {}
 
-mongodb:
+livenessProbe:
+  httpGet: { path: /health, port: http }
+readinessProbe:
+  httpGet: { path: /health, port: http }
+
+# Lean Local Development Database
+devMongo:
   enabled: true
-  auth:
-    rootPassword: admin_password
-    username: user_admin
-    password: user_pass
-    database: restaurant_db
-  architecture: standalone
-  persistence:
-    enabled: false
+  user: user_admin
+  password: user_pass
+  database: restaurant_db
 
 appConfig:
   jwtSecret: "your_jwt_secret"

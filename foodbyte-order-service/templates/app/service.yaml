@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "foodbyte-order-service.fullname" . }}
+  labels:
+    {{- include "foodbyte-order-service.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "foodbyte-order-service.selectorLabels" . | nindent 4 }}

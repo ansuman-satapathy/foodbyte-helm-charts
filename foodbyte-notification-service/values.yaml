@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/ansuman-satapathy/foodbyte-user-service
+  repository: ghcr.io/ansuman-satapathy/foodbyte-notification-service
   pullPolicy: IfNotPresent
   tag: "latest"
 
@@ -18,7 +18,7 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 8001
+  port: 8004
 
 ingress: { enabled: false }
 httpRoute: { enabled: false }
@@ -33,13 +33,15 @@ livenessProbe:
 readinessProbe:
   httpGet: { path: /health, port: http }
 
-devPostgres:
+# Lean Local Development Dependencies
+devRabbitMQ:
   enabled: true
-  user: user_admin
-  password: user_pass
-  database: user_db
+  user: user
+  password: password
+
+devRedis:
+  enabled: true
+  password: password
 
 appConfig:
-  jwtSecret: "your_jwt_secret"
-  jwtAlgorithm: "HS256"
-  jwtExpireMinutes: 60
+  dedupTtlSeconds: 3600

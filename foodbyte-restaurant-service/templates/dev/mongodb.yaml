@@ -1,0 +1,39 @@
+{{- if .Values.devMongo.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-db
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-db
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo:7.0
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: {{ .Values.devMongo.user | quote }}
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: {{ .Values.devMongo.password | quote }}
+            - name: MONGO_INITDB_DATABASE
+              value: {{ .Values.devMongo.database | quote }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-db
+spec:
+  selector:
+    app: {{ .Release.Name }}-db
+  ports:
+    - port: 27017
+      targetPort: 27017
+{{- end }}

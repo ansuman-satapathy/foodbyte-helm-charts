@@ -1,0 +1,39 @@
+{{- if .Values.devPostgres.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-db
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: {{ .Values.devPostgres.user | quote }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.devPostgres.password | quote }}
+            - name: POSTGRES_DB
+              value: {{ .Values.devPostgres.database | quote }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-db
+spec:
+  selector:
+    app: {{ .Release.Name }}-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+{{- end }}
