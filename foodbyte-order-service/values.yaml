@@ -29,9 +29,13 @@ tolerations: []
 affinity: {}
 
 livenessProbe:
-  httpGet: { path: /health, port: http }
+  httpGet:
+    path: /api/orders/health
+    port: http
 readinessProbe:
-  httpGet: { path: /health, port: http }
+  httpGet:
+    path: /api/orders/health
+    port: http
 
 devPostgres:
   enabled: true
@@ -47,5 +51,4 @@ devRabbitMQ:
 appConfig:
   jwtSecret: "your_jwt_secret"
   jwtAlgorithm: "HS256"
-  jwtExpireMinutes: 60
   restaurantServiceUrl: "http://restaurant-service-foodbyte-restaurant-service:8002"

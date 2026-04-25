@@ -29,11 +29,14 @@ tolerations: []
 affinity: {}
 
 livenessProbe:
-  httpGet: { path: /health, port: http }
+  httpGet:
+    path: /api/notifications/health
+    port: http
 readinessProbe:
-  httpGet: { path: /health, port: http }
+  httpGet:
+    path: /api/notifications/health
+    port: http
 
-# Lean Local Development Dependencies
 devRabbitMQ:
   enabled: true
   user: user

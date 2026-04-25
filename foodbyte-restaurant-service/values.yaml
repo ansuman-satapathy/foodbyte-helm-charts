@@ -29,11 +29,14 @@ tolerations: []
 affinity: {}
 
 livenessProbe:
-  httpGet: { path: /health, port: http }
+  httpGet:
+    path: /api/restaurants/health
+    port: http
 readinessProbe:
-  httpGet: { path: /health, port: http }
+  httpGet:
+    path: /api/restaurants/health
+    port: http
 
-# Lean Local Development Database
 devMongo:
   enabled: true
   user: user_admin

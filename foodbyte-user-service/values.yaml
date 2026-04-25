@@ -29,9 +29,13 @@ tolerations: []
 affinity: {}
 
 livenessProbe:
-  httpGet: { path: /health, port: http }
+  httpGet:
+    path: /api/users/health
+    port: http
 readinessProbe:
-  httpGet: { path: /health, port: http }
+  httpGet:
+    path: /api/users/health
+    port: http
 
 devPostgres:
   enabled: true
