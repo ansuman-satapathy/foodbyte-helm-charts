@@ -5,92 +5,53 @@ metadata:
   labels:
     {{- include "foodbyte-order-service.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "foodbyte-order-service.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
-        {{- include "foodbyte-order-service.labels" . | nindent 8 }}
-        {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
+        {{- include "foodbyte-order-service.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "foodbyte-order-service.serviceAccountName" . }}
-      {{- with .Values.podSecurityContext }}
-      securityContext:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       initContainers:
-        - name: wait-for-postgres
+        - name: wait-for-db
           image: alpine:3.21
-          command: ['sh', '-c', 'until nc -z {{ .Release.Name }}-db 5432; do echo waiting for postgres; sleep 2; done;']
-        - name: wait-for-rabbitmq
-          image: alpine:3.21
-          command: ['sh', '-c', 'until nc -z {{ .Release.Name }}-rabbitmq 5672; do echo waiting for rabbitmq; sleep 2; done;']
+          command:
+            - sh
+            - -c
+            - >
+              {{- if .Values.externalDatabase.enabled }}
+              echo "External DB used, skipping wait-for-local-db"
+              {{- else }}
+              until nc -z {{ .Release.Name }}-db 5432; do echo waiting for postgres; sleep 2; done;
+              {{- end }}
       containers:
         - name: {{ .Chart.Name }}
-          {{- with .Values.securityContext }}
-          securityContext:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: 8003
               protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: {{ .Values.livenessProbe.httpGet.path }}
-              port: http
-          readinessProbe:
-            httpGet:
-              path: {{ .Values.readinessProbe.httpGet.path }}
-              port: http
-          {{- with .Values.resources }}
-          resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.volumeMounts }}
-          volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
           env:
             - name: DATABASE_URL
+              {{- if .Values.externalDatabase.enabled }}
+              value: {{ .Values.externalDatabase.url | quote }}
+              {{- else }}
               value: "postgresql://{{ .Values.devPostgres.user }}:{{ .Values.devPostgres.password }}@{{ .Release.Name }}-db:5432/{{ .Values.devPostgres.database }}"
+              {{- end }}
+            - name: JWT_SECRET
+              value: "your_jwt_secret"
             - name: RABBITMQ_URL
               value: "amqp://{{ .Values.devRabbitMQ.user }}:{{ .Values.devRabbitMQ.password }}@{{ .Release.Name }}-rabbitmq:5672/"
-            - name: RESTAURANT_SERVICE_URL
-              value: {{ .Values.appConfig.restaurantServiceUrl | quote }}
-            - name: JWT_SECRET
-              value: {{ .Values.appConfig.jwtSecret | quote }}
-            - name: JWT_ALGORITHM
-              value: {{ .Values.appConfig.jwtAlgorithm | quote }}
-      {{- with .Values.volumes }}
-      volumes:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+          livenessProbe:
+            http-get: { path: /api/orders/health, port: http }
+          readinessProbe:
+            http-get: { path: /api/orders/health, port: http }
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

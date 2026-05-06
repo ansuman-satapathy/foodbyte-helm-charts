@@ -1,50 +1,14 @@
-replicaCount: 1
+externalDatabase:
+  enabled: false
+  redisUrl: ""
+  rabbitUrl: ""
 
-image:
-  repository: ghcr.io/ansuman-satapathy/foodbyte-notification-service
-  pullPolicy: IfNotPresent
-  tag: "latest"
+imagePullSecrets: []
 
-serviceAccount:
-  create: true
-  automount: true
-  annotations: {}
-  name: ""
-
-podAnnotations: {}
-podLabels: {}
-podSecurityContext: {}
-securityContext: {}
-
-service:
-  type: ClusterIP
-  port: 8004
-
-ingress: { enabled: false }
-httpRoute: { enabled: false }
-resources: {}
-autoscaling: { enabled: false }
-nodeSelector: {}
-tolerations: []
-affinity: {}
-
-livenessProbe:
-  httpGet:
-    path: /api/notifications/health
-    port: http
-readinessProbe:
-  httpGet:
-    path: /api/notifications/health
-    port: http
-
-devRabbitMQ:
-  enabled: true
-  user: user
-  password: password
-
-devRedis:
-  enabled: true
-  password: password
-
-appConfig:
-  dedupTtlSeconds: 3600
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
