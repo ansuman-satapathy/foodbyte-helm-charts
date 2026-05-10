@@ -1,3 +1,28 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/ansuman-satapathy/foodbyte-restaurant-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 8002
+
+ingress: { enabled: false }
+httpRoute: { enabled: false }
+
 externalDatabase:
   enabled: false
   url: ""
@@ -5,10 +30,29 @@ externalDatabase:
 
 imagePullSecrets: []
 
-resources:
-  limits:
-    cpu: 200m
-    memory: 256Mi
-  requests:
-    cpu: 100m
-    memory: 128Mi
+resources: {}
+
+autoscaling: { enabled: false }
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+livenessProbe:
+  httpGet:
+    path: /api/restaurants/health
+    port: http
+readinessProbe:
+  httpGet:
+    path: /api/restaurants/health
+    port: http
+
+devMongo:
+  enabled: true
+  user: user_admin
+  password: user_pass
+  database: restaurant_db
+
+appConfig:
+  jwtSecret: "your_jwt_secret"
+  jwtAlgorithm: "HS256"
+  jwtExpireMinutes: 60

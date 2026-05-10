@@ -5,17 +5,31 @@ metadata:
   labels:
     {{- include "foodbyte-restaurant-service.labels" . | nindent 4 }}
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "foodbyte-restaurant-service.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
-        {{- include "foodbyte-restaurant-service.selectorLabels" . | nindent 8 }}
+        {{- include "foodbyte-restaurant-service.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "foodbyte-restaurant-service.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       initContainers:
@@ -26,24 +40,44 @@ spec:
             - -c
             - >
               {{- if .Values.externalDatabase.enabled }}
-              echo "External DB used, skipping wait-for-local-db"
+              echo "External DB used, skipping wait"
               {{- else }}
-              until nc -z {{ .Release.Name }}-db 27017; do echo waiting for mongo; sleep 2; done;
+              until nc -z {{ .Release.Name }}-db 27017; do echo waiting for db; sleep 2; done;
               {{- end }}
       containers:
         - name: {{ .Chart.Name }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 8002
+              containerPort: {{ .Values.service.port }}
               protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.livenessProbe.httpGet.path }}
+              port: http
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.readinessProbe.httpGet.path }}
+              port: http
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
             - name: MONGODB_URL
               {{- if .Values.externalDatabase.enabled }}
               value: {{ .Values.externalDatabase.url | quote }}
               {{- else }}
-              value: "mongodb://{{ .Values.devMongo.user }}:{{ .Values.devMongo.password }}@{{ .Release.Name }}-db:27017/?authSource=admin"
+              value: "mongodb://{{ .Values.devMongo.user }}:{{ .Values.devMongo.password }}@{{ .Release.Name }}-db:27017/{{ .Values.devMongo.database }}?authSource=admin"
               {{- end }}
             - name: MONGODB_DB
               {{- if .Values.externalDatabase.enabled }}
@@ -52,10 +86,24 @@ spec:
               value: {{ .Values.devMongo.database | quote }}
               {{- end }}
             - name: JWT_SECRET
-              value: "your_jwt_secret"
-          livenessProbe:
-            http-get: { path: /api/restaurants/health, port: http }
-          readinessProbe:
-            http-get: { path: /api/restaurants/health, port: http }
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+              value: {{ .Values.appConfig.jwtSecret | quote }}
+            - name: JWT_ALGORITHM
+              value: {{ .Values.appConfig.jwtAlgorithm | quote }}
+            - name: JWT_EXPIRE_MINUTES
+              value: {{ .Values.appConfig.jwtExpireMinutes | quote }}
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

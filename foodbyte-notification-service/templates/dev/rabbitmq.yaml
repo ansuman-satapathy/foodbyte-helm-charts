@@ -1,4 +1,14 @@
 {{- if .Values.devRabbitMQ.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-rabbitmq-config
+data:
+  rabbitmq.conf: |
+    # Local Dev Tuning - Verified May 2026
+    # Increase to 1GB to prevent watermarking on high-RAM host machines
+    vm_memory_high_watermark.absolute = 1024Mi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -24,6 +34,14 @@ spec:
               value: {{ .Values.devRabbitMQ.user | quote }}
             - name: RABBITMQ_DEFAULT_PASS
               value: {{ .Values.devRabbitMQ.password | quote }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/rabbitmq/conf.d/20-dev-overrides.conf
+              subPath: rabbitmq.conf
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-rabbitmq-config
 ---
 apiVersion: v1
 kind: Service
