@@ -24,7 +24,7 @@ k8s_resource(
     new_name='api-gateway',
     objects=[
         'foodbyte-gateway:Gateway:default',
-        'kind-proxy-config:EnvoyProxy:envoy-gateway-system'
+        'foodbyte-proxy-config:EnvoyProxy:envoy-gateway-system'
     ],
     extra_pod_selectors=[
         {'app.kubernetes.io/component': 'proxy'}
