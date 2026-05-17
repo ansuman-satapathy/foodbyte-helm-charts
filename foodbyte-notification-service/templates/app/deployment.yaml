@@ -18,7 +18,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "foodbyte-notification-service.labels" . | nindent 8 }}
+        {{- include "foodbyte-notification-service.selectorLabels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -88,16 +88,41 @@ spec:
               {{- if .Values.externalDatabase.enabled }}
               value: {{ .Values.externalDatabase.rabbitUrl | quote }}
               {{- else }}
+              # Password from secret in prod, values for local
+              {{- if .Values.useSecrets }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "foodbyte-notification-service.fullname" . }}-secrets
+                  key: rabbitmq-url
+              {{- else }}
               value: "amqp://{{ .Values.devRabbitMQ.user }}:{{ .Values.devRabbitMQ.password }}@{{ .Release.Name }}-rabbitmq:5672/"
+              {{- end }}
               {{- end }}
             - name: REDIS_URL
               {{- if .Values.externalDatabase.enabled }}
               value: {{ .Values.externalDatabase.redisUrl | quote }}
               {{- else }}
+              # Password from secret in prod, values for local
+              {{- if .Values.useSecrets }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "foodbyte-notification-service.fullname" . }}-secrets
+                  key: redis-url
+              {{- else }}
               value: "redis://:{{ .Values.devRedis.password }}@{{ .Release.Name }}-redis:6379/0"
+              {{- end }}
               {{- end }}
             - name: DEDUP_TTL_SECONDS
               value: {{ .Values.appConfig.dedupTtlSeconds | quote }}
+            - name: JWT_SECRET
+              {{- if .Values.useSecrets }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "foodbyte-notification-service.fullname" . }}-secrets
+                  key: jwt-secret
+              {{- else }}
+              value: "local_dev_secret" # Notification doesn't have JWT in values but might need it
+              {{- end }}
       {{- with .Values.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}

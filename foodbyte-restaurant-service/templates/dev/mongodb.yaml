@@ -1,9 +1,10 @@
 {{- if .Values.devMongo.enabled }}
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ .Release.Name }}-db
 spec:
+  serviceName: {{ .Release.Name }}-db
   replicas: 1
   selector:
     matchLabels:
@@ -22,9 +23,30 @@ spec:
             - name: MONGO_INITDB_ROOT_USERNAME
               value: {{ .Values.devMongo.user | quote }}
             - name: MONGO_INITDB_ROOT_PASSWORD
+              {{- if .Values.useSecrets }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "foodbyte-restaurant-service.fullname" . }}-secrets
+                  key: mongo-password
+              {{- else }}
               value: {{ .Values.devMongo.password | quote }}
+              {{- end }}
             - name: MONGO_INITDB_DATABASE
               value: {{ .Values.devMongo.database | quote }}
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- if .Values.devMongo.persistence.storageClass }}
+        storageClassName: {{ .Values.devMongo.persistence.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.devMongo.persistence.size | quote }}
 ---
 apiVersion: v1
 kind: Service

@@ -23,6 +23,8 @@ service:
 ingress: { enabled: false }
 httpRoute: { enabled: false }
 
+useSecrets: false
+
 externalDatabase:
   enabled: false
   url: ""
@@ -51,6 +53,10 @@ devMongo:
   user: user_admin
   password: user_pass
   database: restaurant_db
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
 
 appConfig:
   jwtSecret: "your_jwt_secret"

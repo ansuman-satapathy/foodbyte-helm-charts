@@ -1,9 +1,10 @@
+# Production Overrides for AWS EKS (Full Self-Hosted)
 replicaCount: 2
 
+useSecrets: true
+
 externalDatabase:
-  enabled: true
-  url: "REPLACE_WITH_DOCDB_ENDPOINT"
-  dbName: "foodbyte"
+  enabled: false
 
 imagePullSecrets:
   - name: ghcr-pull-secret

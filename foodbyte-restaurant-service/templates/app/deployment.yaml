@@ -18,7 +18,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "foodbyte-restaurant-service.labels" . | nindent 8 }}
+        {{- include "foodbyte-restaurant-service.selectorLabels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -86,7 +86,14 @@ spec:
               value: {{ .Values.devMongo.database | quote }}
               {{- end }}
             - name: JWT_SECRET
+              {{- if .Values.useSecrets }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "foodbyte-restaurant-service.fullname" . }}-secrets
+                  key: jwt-secret
+              {{- else }}
               value: {{ .Values.appConfig.jwtSecret | quote }}
+              {{- end }}
             - name: JWT_ALGORITHM
               value: {{ .Values.appConfig.jwtAlgorithm | quote }}
             - name: JWT_EXPIRE_MINUTES

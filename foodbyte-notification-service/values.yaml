@@ -23,6 +23,8 @@ service:
 ingress: { enabled: false }
 httpRoute: { enabled: false }
 
+useSecrets: false
+
 externalDatabase:
   enabled: false
   redisUrl: ""
@@ -50,10 +52,18 @@ devRabbitMQ:
   enabled: true
   user: user
   password: password
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
 
 devRedis:
   enabled: true
   password: password
+  persistence:
+    enabled: true
+    size: 2Gi
+    storageClass: ""
 
 appConfig:
   dedupTtlSeconds: 3600

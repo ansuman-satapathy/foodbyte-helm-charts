@@ -10,10 +10,11 @@ data:
     vm_memory_high_watermark.absolute = 1024Mi
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ .Release.Name }}-rabbitmq
 spec:
+  serviceName: {{ .Release.Name }}-rabbitmq
   replicas: 1
   selector:
     matchLabels:
@@ -33,15 +34,35 @@ spec:
             - name: RABBITMQ_DEFAULT_USER
               value: {{ .Values.devRabbitMQ.user | quote }}
             - name: RABBITMQ_DEFAULT_PASS
+              {{- if .Values.useSecrets }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "foodbyte-order-service.fullname" . }}-secrets
+                  key: rabbitmq-password
+              {{- else }}
               value: {{ .Values.devRabbitMQ.password | quote }}
+              {{- end }}
           volumeMounts:
             - name: config
               mountPath: /etc/rabbitmq/conf.d/20-dev-overrides.conf
               subPath: rabbitmq.conf
+            - name: data
+              mountPath: /var/lib/rabbitmq
       volumes:
         - name: config
           configMap:
             name: {{ .Release.Name }}-rabbitmq-config
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- if .Values.devRabbitMQ.persistence.storageClass }}
+        storageClassName: {{ .Values.devRabbitMQ.persistence.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.devRabbitMQ.persistence.size | quote }}
 ---
 apiVersion: v1
 kind: Service

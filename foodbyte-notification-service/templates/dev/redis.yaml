@@ -1,9 +1,10 @@
 {{- if .Values.devRedis.enabled }}
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ .Release.Name }}-redis
 spec:
+  serviceName: {{ .Release.Name }}-redis
   replicas: 1
   selector:
     matchLabels:
@@ -21,6 +22,30 @@ spec:
           {{- if .Values.devRedis.password }}
           args: ["--requirepass", {{ .Values.devRedis.password | quote }}]
           {{- end }}
+          env:
+            - name: REDIS_PASSWORD
+              {{- if .Values.useSecrets }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "foodbyte-notification-service.fullname" . }}-secrets
+                  key: redis-password
+              {{- else }}
+              value: {{ .Values.devRedis.password | quote }}
+              {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- if .Values.devRedis.persistence.storageClass }}
+        storageClassName: {{ .Values.devRedis.persistence.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.devRedis.persistence.size | quote }}
 ---
 apiVersion: v1
 kind: Service

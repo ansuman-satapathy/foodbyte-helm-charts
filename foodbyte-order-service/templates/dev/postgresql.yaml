@@ -1,9 +1,10 @@
 {{- if .Values.devPostgres.enabled }}
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ .Release.Name }}-db
 spec:
+  serviceName: {{ .Release.Name }}-db
   replicas: 1
   selector:
     matchLabels:
@@ -22,9 +23,32 @@ spec:
             - name: POSTGRES_USER
               value: {{ .Values.devPostgres.user | quote }}
             - name: POSTGRES_PASSWORD
+              {{- if .Values.useSecrets }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "foodbyte-order-service.fullname" . }}-secrets
+                  key: postgres-password
+              {{- else }}
               value: {{ .Values.devPostgres.password | quote }}
+              {{- end }}
             - name: POSTGRES_DB
               value: {{ .Values.devPostgres.database | quote }}
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- if .Values.devPostgres.persistence.storageClass }}
+        storageClassName: {{ .Values.devPostgres.persistence.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.devPostgres.persistence.size | quote }}
 ---
 apiVersion: v1
 kind: Service

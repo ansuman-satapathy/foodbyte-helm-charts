@@ -88,7 +88,14 @@ spec:
             - name: RESTAURANT_SERVICE_URL
               value: {{ .Values.appConfig.restaurantServiceUrl | quote }}
             - name: JWT_SECRET
+              {{- if .Values.useSecrets }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "foodbyte-order-service.fullname" . }}-secrets
+                  key: jwt-secret
+              {{- else }}
               value: {{ .Values.appConfig.jwtSecret | quote }}
+              {{- end }}
             - name: JWT_ALGORITHM
               value: {{ .Values.appConfig.jwtAlgorithm | quote }}
       {{- with .Values.volumes }}

@@ -1,8 +1,13 @@
-replicaCount: 2 
+# Production Overrides for AWS EKS (Full Self-Hosted)
+replicaCount: 2
+
+useSecrets: true
 
 externalDatabase:
-  enabled: true
-  url: "REPLACE_WITH_RDS_POSTGRES_ENDPOINT"
+  enabled: false # Use the internal Helm-managed DBs but with persistence
+
+# Secrets are injected via ExternalSecrets into a secret named 'user-service-secrets'
+# Our deployment.yaml logic needs a small update to pull from this secret instead of values.yaml
 
 imagePullSecrets:
   - name: ghcr-pull-secret

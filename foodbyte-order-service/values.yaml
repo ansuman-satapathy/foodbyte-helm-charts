@@ -23,6 +23,8 @@ service:
 ingress: { enabled: false }
 httpRoute: { enabled: false }
 
+useSecrets: false
+
 externalDatabase:
   enabled: false
   url: ""
@@ -51,11 +53,19 @@ devPostgres:
   user: order_user
   password: order_password
   database: order_db
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
 
 devRabbitMQ:
   enabled: true
   user: user
   password: password
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
 
 appConfig:
   jwtSecret: "your_jwt_secret"

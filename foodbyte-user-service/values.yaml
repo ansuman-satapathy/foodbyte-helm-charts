@@ -23,6 +23,8 @@ service:
 ingress: { enabled: false }
 httpRoute: { enabled: false }
 
+useSecrets: false
+
 externalDatabase:
   enabled: false
   url: ""
@@ -50,6 +52,10 @@ devPostgres:
   user: user_admin
   password: user_pass
   database: user_db
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
 
 appConfig:
   jwtSecret: "your_jwt_secret"

@@ -80,7 +80,14 @@ spec:
               value: "postgresql://{{ .Values.devPostgres.user }}:{{ .Values.devPostgres.password }}@{{ .Release.Name }}-db:5432/{{ .Values.devPostgres.database }}"
               {{- end }}
             - name: JWT_SECRET
+              {{- if .Values.useSecrets }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "foodbyte-user-service.fullname" . }}-secrets
+                  key: jwt-secret
+              {{- else }}
               value: {{ .Values.appConfig.jwtSecret | quote }}
+              {{- end }}
             - name: JWT_ALGORITHM
               value: {{ .Values.appConfig.jwtAlgorithm | quote }}
             - name: JWT_EXPIRE_MINUTES

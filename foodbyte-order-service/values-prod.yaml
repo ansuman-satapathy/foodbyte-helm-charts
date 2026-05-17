@@ -1,8 +1,10 @@
+# Production Overrides for AWS EKS (Full Self-Hosted)
 replicaCount: 2
 
+useSecrets: true
+
 externalDatabase:
-  enabled: true
-  url: "REPLACE_WITH_RDS_POSTGRES_ENDPOINT"
+  enabled: false
 
 imagePullSecrets:
   - name: ghcr-pull-secret

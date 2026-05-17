@@ -16,9 +16,9 @@ for svc in services:
     k8s_yaml(yaml)
 
 
-k8s_yaml('../foodbyte-infra/gateway-class.yaml')
-k8s_yaml('../foodbyte-infra/envoy-proxy-config.yaml')
-k8s_yaml('./gateway.yaml')
+k8s_yaml('../foodbyte-infra/k8s-manifests/gateway-class.yaml')
+k8s_yaml('../foodbyte-infra/k8s-manifests/envoy-proxy-config.yaml')
+k8s_yaml('../foodbyte-infra/k8s-manifests/gateway.yaml')
 
 k8s_resource(
     new_name='api-gateway',
