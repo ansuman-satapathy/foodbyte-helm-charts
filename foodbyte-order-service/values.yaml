@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/ansuman-satapathy/foodbyte-order-service
   pullPolicy: IfNotPresent
-  tag: "latest"
+  tag: "fa68e3f7c9b73ee269de6204d12a3fd2daf45783"
 
 serviceAccount:
   create: true
